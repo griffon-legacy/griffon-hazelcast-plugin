@@ -37,7 +37,7 @@ class HazelcastGriffonAddon {
         }
     }
 
-    def events = [
+    Map events = [
         ShutdownStart: { app ->
             ConfigObject config = HazelcastConnector.instance.createConfig(app)
             HazelcastConnector.instance.disconnect(app, config)

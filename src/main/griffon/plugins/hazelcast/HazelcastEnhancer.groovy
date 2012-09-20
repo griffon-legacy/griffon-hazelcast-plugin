@@ -27,7 +27,7 @@ final class HazelcastEnhancer {
     private static final Logger LOG = LoggerFactory.getLogger(HazelcastEnhancer)
 
     private HazelcastEnhancer() {}
-    
+
     static void enhance(MetaClass mc, HazelcastProvider provider = HazelcastClientHolder.instance) {
         if(LOG.debugEnabled) LOG.debug("Enhancing $mc with $provider")
         mc.withHazelcast = {Closure closure ->

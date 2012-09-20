@@ -18,7 +18,7 @@ griffon.project.dependency.resolution = {
         mavenCentral()
     }
     dependencies {
-        compile 'com.hazelcast:hazelcast-client:2.1'
+        compile 'com.hazelcast:hazelcast-client:2.2'
     }
 }
 

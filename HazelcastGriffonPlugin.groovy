@@ -19,9 +19,9 @@
  */
  class HazelcastGriffonPlugin {
     // the plugin version
-    String version = '0.1'
+    String version = '0.2'
     // the version or versions of Griffon the plugin is designed for
-    String griffonVersion = '0.9.5 > *'
+    String griffonVersion = '1.1.0 > *'
     // the other plugins this plugin depends on
     Map dependsOn = [:]
     // resources that are included in plugin packaging
@@ -63,19 +63,20 @@ giving you access to a `com.hazelcast.client.HazelcastClient` object, with which
 to make calls to the database. Remember to make all database calls off the EDT
 otherwise your application may appear unresponsive when doing long computations
 inside the EDT.
+
 This method is aware of multiple databases. If no clientName is specified when calling
 it then the default database will be selected. Here are two example usages, the first
 queries against the default database while the second queries a database whose name has
 been configured as 'internal'
 
-	package sample
-	class SampleController {
-	    def queryAllDatabases = {
-	        withHazelcast { clientName, client -> ... }
-	        withHazelcast('internal') { clientName, client -> ... }
-	    }
-	}
-	
+    package sample
+    class SampleController {
+        def queryAllDatabases = {
+            withHazelcast { clientName, client -> ... }
+            withHazelcast('internal') { clientName, client -> ... }
+        }
+    }
+
 This method is also accessible to any component through the singleton `griffon.plugins.hazelcast.HazelcastConnector`.
 You can inject these methods to non-artifacts via metaclasses. Simply grab hold of a particular metaclass and call
 `HazelcastEnhancer.enhance(metaClassInstance, hazelcastProviderInstance)`.
@@ -105,11 +106,11 @@ implies this is the client used by default, however you can configure named clie
 by adding a new config block. For example connecting to a client whose name is 'internal'
 can be done in this way
 
-	clients {
+    clients {
         internal {
             addresses = ['127.0.0.1:5701']
         }
-	}
+    }
 
 This block can be used inside the `environments()` block in the same way as the
 default client block is used.
@@ -136,9 +137,9 @@ fails regardless of the arguments it receives
 
     class MyHazelcastProvider implements HazelcastProvider {
         Object withHazelcast(String clientName = 'default', Closure closure) { null }
-        public <T> T withHazelcast(String clientName = 'default', CallableWithArgs<T> callable) { null }      
+        public <T> T withHazelcast(String clientName = 'default', CallableWithArgs<T> callable) { null }
     }
-    
+
 This implementation may be used in the following way
 
     class MyServiceTests extends GriffonUnitTestCase {

@@ -34,7 +34,7 @@ class HazelcastClientHolder implements HazelcastProvider {
     private static final Logger LOG = LoggerFactory.getLogger(HazelcastClientHolder)
     private static final Object[] LOCK = new Object[0]
     private final Map<String, HazelcastClient> clients = [:]
-  
+
     String[] getClientNames() {
         List<String> clientNames = new ArrayList().addAll(clients.keySet())
         clientNames.toArray(new String[clientNames.size()])
@@ -47,7 +47,7 @@ class HazelcastClientHolder implements HazelcastProvider {
 
     void setClient(String clientName = 'default', HazelcastClient client) {
         if(isBlank(clientName)) clientName = 'default'
-        storeClient(clientName, client)       
+        storeClient(clientName, client)
     }
 
     Object withHazelcast(String clientName = 'default', Closure closure) {
@@ -62,15 +62,15 @@ class HazelcastClientHolder implements HazelcastProvider {
         callable.args = [clientName, client] as Object[]
         return callable.call()
     }
-    
+
     boolean isClientConnected(String clientName) {
         if(isBlank(clientName)) clientName = 'default'
         retrieveClient(clientName) != null
     }
-    
+
     void disconnectClient(String clientName) {
         if(isBlank(clientName)) clientName = 'default'
-        storeClient(clientName, null)        
+        storeClient(clientName, null)
     }
 
     private HazelcastClient fetchClient(String clientName) {
@@ -81,7 +81,7 @@ class HazelcastClientHolder implements HazelcastProvider {
             ConfigObject config = HazelcastConnector.instance.createConfig(app)
             client = HazelcastConnector.instance.connect(app, config, clientName)
         }
-        
+
         if(client == null) {
             throw new IllegalArgumentException("No such HazelcastClient configuration for name $clientName")
         }
