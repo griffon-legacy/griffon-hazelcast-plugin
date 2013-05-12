@@ -22,7 +22,11 @@ import groovy.lang.Closure;
 /**
  * @author Andres Almiray
  */
-public interface HazelcastProvider {
+public interface HazelcastContributionHandler {
+    void setHazelcastProvider(HazelcastProvider provider);
+
+    HazelcastProvider getHazelcastProvider();
+
     <R> R withHazelcast(Closure<R> closure);
 
     <R> R withHazelcast(String clientName, Closure<R> closure);

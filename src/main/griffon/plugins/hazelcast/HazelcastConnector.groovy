@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,78 +13,92 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package griffon.plugins.hazelcast
-
-import com.hazelcast.client.*
 
 import griffon.core.GriffonApplication
 import griffon.util.Environment
 import griffon.util.Metadata
-import griffon.util.CallableWithArgs
 import griffon.util.ConfigUtils
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import com.hazelcast.client.*
+
 /**
  * @author Andres Almiray
  */
 @Singleton
-final class HazelcastConnector implements HazelcastProvider {
+final class HazelcastConnector {
+    private static final String DEFAULT = 'default'
+    private static final Logger LOG = LoggerFactory.getLogger(HazelcastConnector)
     private bootstrap
 
-    private static final Logger LOG = LoggerFactory.getLogger(HazelcastConnector)
-
-    Object withHazelcast(String clientName = 'default', Closure closure) {
-        HazelcastClientHolder.instance.withHazelcast(clientName, closure)
-    }
-
-    public <T> T withHazelcast(String clientName = 'default', CallableWithArgs<T> callable) {
-        return HazelcastClientHolder.instance.withHazelcast(clientName, callable)
-    }
-
-    // ======================================================
-
     ConfigObject createConfig(GriffonApplication app) {
-        ConfigUtils.loadConfigWithI18n('HazelcastConfig')
+        if (!app.config.pluginConfig.hazelcast) {
+            app.config.pluginConfig.hazelcast = ConfigUtils.loadConfigWithI18n('HazelcastConfig')
+        }
+        app.config.pluginConfig.hazelcast
     }
 
     private ConfigObject narrowConfig(ConfigObject config, String clientName) {
-        return clientName == 'default' ? config.client : config.clients[clientName]
+        if (config.containsKey('client') && clientName == DEFAULT) {
+            return config.client
+        } else if (config.containsKey('clients')) {
+            return config.clients[clientName]
+        }
+        return config
     }
 
-    HazelcastClient connect(GriffonApplication app, ConfigObject config, String clientName = 'default') {
-        if (HazelcastClientHolder.instance.isClientConnected(clientName)) {
-            return HazelcastClientHolder.instance.getClient(clientName)
+    HazelcastClient connect(GriffonApplication app, ConfigObject config, String clientName = DEFAULT) {
+        if (HazelcastClientHolder.instance.isHazelcastClientConnected(clientName)) {
+            return HazelcastClientHolder.instance.getHazelcastClient(clientName)
         }
 
         config = narrowConfig(config, clientName)
         app.event('HazelcastConnectStart', [config, clientName])
         HazelcastClient client = startHazelcast(config)
-        HazelcastClientHolder.instance.setClient(clientName, client)
+        HazelcastClientHolder.instance.setHazelcastClient(clientName, client)
         bootstrap = app.class.classLoader.loadClass('BootstrapHazelcast').newInstance()
         bootstrap.metaClass.app = app
-        bootstrap.init(clientName, client)
+        resolveHazelcastProvider(app).withHazelcast { dn, c -> bootstrap.init(dn, c) }
         app.event('HazelcastConnectEnd', [clientName, client])
         client
     }
 
-    void disconnect(GriffonApplication app, ConfigObject config, String clientName = 'default') {
-        if (HazelcastClientHolder.instance.isClientConnected(clientName)) {
+    void disconnect(GriffonApplication app, ConfigObject config, String clientName = DEFAULT) {
+        if (HazelcastClientHolder.instance.isHazelcastClientConnected(clientName)) {
             config = narrowConfig(config, clientName)
-            HazelcastClient client = HazelcastClientHolder.instance.getClient(clientName)
+            HazelcastClient client = HazelcastClientHolder.instance.getHazelcastClient(clientName)
             app.event('HazelcastDisconnectStart', [config, clientName, client])
-            bootstrap.destroy(clientName, client)
+            resolveHazelcastProvider(app).withHazelcast { dn, c -> bootstrap.destroy(dn, c) }
             stopHazelcast(config, client)
             app.event('HazelcastDisconnectEnd', [config, clientName])
-            HazelcastClientHolder.instance.disconnectClient(clientName)
+            HazelcastClientHolder.instance.disconnectHazelcastClient(clientName)
         }
+    }
+
+    HazelcastProvider resolveHazelcastProvider(GriffonApplication app) {
+        def hazelcastProvider = app.config.hazelcastProvider
+        if (hazelcastProvider instanceof Class) {
+            hazelcastProvider = hazelcastProvider.newInstance()
+            app.config.hazelcastProvider = hazelcastProvider
+        } else if (!hazelcastProvider) {
+            hazelcastProvider = DefaultHazelcastProvider.instance
+            app.config.hazelcastProvider = hazelcastProvider
+        }
+        hazelcastProvider
     }
 
     private HazelcastClient startHazelcast(ConfigObject config) {
         ClientConfig clientConfig = new ClientConfig()
-        config.each { key, value -> clientConfig[key] = value }
+        config.each { key, value ->
+            try {
+                clientConfig[key] = value
+            } catch(MissingPropertyException e) {
+                // ignore
+            }
+        }
         HazelcastClient.newHazelcastClient(clientConfig)
     }
 

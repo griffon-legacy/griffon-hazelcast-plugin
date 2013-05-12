@@ -6,4 +6,4 @@ class BootstrapHazelcast {
 
     def destroy = { String clientName, HazelcastClient client ->
     }
-} 
+}

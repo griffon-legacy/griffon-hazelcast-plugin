@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package griffon.plugins.hazelcast;
-
-import griffon.util.CallableWithArgs;
-import groovy.lang.Closure;
+package gdsl
 
 /**
  * @author Andres Almiray
  */
-public interface HazelcastProvider {
-    <R> R withHazelcast(Closure<R> closure);
 
-    <R> R withHazelcast(String clientName, Closure<R> closure);
-
-    <R> R withHazelcast(CallableWithArgs<R> callable);
-
-    <R> R withHazelcast(String clientName, CallableWithArgs<R> callable);
+contributor(scope: annotatedScope(ctype: 'griffon.plugins.hazelcast.HazelcastAware')) {
+    delegatesTo(findClass('griffon.plugins.hazelcast.HazelcastContributionHandler'))
 }

@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package griffon.plugins.hazelcast;
-
-import griffon.util.CallableWithArgs;
-import groovy.lang.Closure;
+package dsld
 
 /**
  * @author Andres Almiray
  */
-public interface HazelcastProvider {
-    <R> R withHazelcast(Closure<R> closure);
 
-    <R> R withHazelcast(String clientName, Closure<R> closure);
-
-    <R> R withHazelcast(CallableWithArgs<R> callable);
-
-    <R> R withHazelcast(String clientName, CallableWithArgs<R> callable);
+contribute(enclosingClass(annotatedBy('griffon.plugins.hazelcast.HazelcastAware'))) {
+    provider = "Hazelcast DSL"
+    delegatesTo "griffon.plugins.hazelcast.HazelcastContributionHandler"
 }

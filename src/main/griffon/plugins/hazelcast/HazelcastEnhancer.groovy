@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2012-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,21 @@ import org.slf4j.LoggerFactory
  * @author Andres Almiray
  */
 final class HazelcastEnhancer {
+    private static final String DEFAULT = 'default'
     private static final Logger LOG = LoggerFactory.getLogger(HazelcastEnhancer)
 
     private HazelcastEnhancer() {}
-
-    static void enhance(MetaClass mc, HazelcastProvider provider = HazelcastClientHolder.instance) {
-        if(LOG.debugEnabled) LOG.debug("Enhancing $mc with $provider")
+    
+    static void enhance(MetaClass mc, HazelcastProvider provider = DefaultHazelcastProvider.instance) {
+        if (LOG.debugEnabled) LOG.debug("Enhancing $mc with $provider")
         mc.withHazelcast = {Closure closure ->
-            provider.withHazelcast('default', closure)
+            provider.withHazelcast(DEFAULT, closure)
         }
         mc.withHazelcast << {String clientName, Closure closure ->
             provider.withHazelcast(clientName, closure)
         }
         mc.withHazelcast << {CallableWithArgs callable ->
-            provider.withHazelcast('default', callable)
+            provider.withHazelcast(DEFAULT, callable)
         }
         mc.withHazelcast << {String clientName, CallableWithArgs callable ->
             provider.withHazelcast(clientName, callable)

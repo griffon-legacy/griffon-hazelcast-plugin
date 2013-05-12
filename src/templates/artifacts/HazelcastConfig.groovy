@@ -1,5 +1,5 @@
 client {
-	addresses = ['127.0.0.1:5701']
+    addresses = ['127.0.0.1:5701']
 }
 environments {
     development {

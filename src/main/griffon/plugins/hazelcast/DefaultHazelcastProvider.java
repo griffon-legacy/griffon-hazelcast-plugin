@@ -16,18 +16,26 @@
 
 package griffon.plugins.hazelcast;
 
-import griffon.util.CallableWithArgs;
-import groovy.lang.Closure;
+import com.hazelcast.client.HazelcastClient;
 
 /**
  * @author Andres Almiray
  */
-public interface HazelcastProvider {
-    <R> R withHazelcast(Closure<R> closure);
+public class DefaultHazelcastProvider extends AbstractHazelcastProvider {
+    private static final DefaultHazelcastProvider INSTANCE;
 
-    <R> R withHazelcast(String clientName, Closure<R> closure);
+    static {
+        INSTANCE = new DefaultHazelcastProvider();
+    }
 
-    <R> R withHazelcast(CallableWithArgs<R> callable);
+    public static DefaultHazelcastProvider getInstance() {
+        return INSTANCE;
+    }
 
-    <R> R withHazelcast(String clientName, CallableWithArgs<R> callable);
+    private DefaultHazelcastProvider() {}
+
+    @Override
+    protected HazelcastClient getHazelcastClient(String clientName) {
+        return HazelcastClientHolder.getInstance().fetchHazelcastClient(clientName);
+    }
 }
